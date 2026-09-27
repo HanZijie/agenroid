@@ -38,6 +38,11 @@ python3 tools/aosp/wire-platform.py /path/to/aosp --apply \
 这三个 APK 会使用 AOSP `platform` 证书重新签名并安装到 product 分区；
 `meeting-records` 的 system endpoint 会被 `AgentManagerService` 按包名发现。
 
+从 APK 构建、AOSP 接线、Cuttlefish 镜像打包到设备烟测的完整顺序见
+[`docs/aosp-image-demo-quickstart.md`](../docs/aosp-image-demo-quickstart.md)。
+当前 Demo 烟测覆盖 APK 存在、Plugin 发现/启用和三个 Activity 的基本操作；
+完整 tool/resource 调用仍不在 AOSP bootstrap 的验收范围内。
+
 ## 演示边界
 
 这些 App 使用应用私有 JSON 文件保存数据，目的是验证跨 App 能力路径和最小用户流程，不是生产级日历或提醒服务。记录 App 的 MCP 服务只绑定 `127.0.0.1`、拒绝带 `Origin` 的请求，不把认证凭据写入 Plugin descriptor；端口和会话都由进程运行时生成，没有写入仓库。

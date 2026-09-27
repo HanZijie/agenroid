@@ -2,7 +2,7 @@
 
 这是从当前 Android 原型迁移到系统 Agent 的最小顺序。每一步都应能单独验证，默认不构建完整 AOSP 镜像。
 
-2026-09-22 重建基线：源码固定 `android-15.0.0_r34`。`62223a7` 及后续提交已保存 overlay、自动接线、probe 和备份脚本；这些代码尚未在本轮形成可运行的 AgentOS 镜像。新主机环境已记录，官方 stock Cuttlefish build `16373615` image/host 包已在仓库外 `../.local/aosp-artifacts/2026-09-22-rebuild/fallback/` 校验保存，但启动未完成。stock 包不含 AgentOS；当前没有 AgentOS 真机验证，不能称为刷机就绪。
+2026-09-23 重建基线：源码固定 `android-15.0.0_r34`。`62223a7` 及后续提交已保存 overlay、自动接线、probe 和备份脚本；自定义 Cuttlefish userdebug 镜像已经完成构建、启动、AgentOS health 和 Plugin 发现/握手验证。官方 stock Cuttlefish build `16373615` 仍作为独立 host 基线，stock 包不含 AgentOS。当前没有 Pixel 8 真机验证，也不能把完整 Plugin tool/resource 数据面或真实模型请求写成已完成。
 
 ## M0：仓库和契约
 
@@ -17,17 +17,17 @@
 ## M1：sideagentd 骨架
 
 - [x] 添加独立的 Session Store、Session Scheduler 和 Worker 参考实现（无 Binder、无真实模型）。
-- [x] 添加 SessionSelector、Jev Choice HTTP adapter 和 `submitAutoInput` 参考实现；密钥只从未跟踪的运行时配置读取，真实设备注入和镜像验证待完成。
-- [~] 添加最小 daemon 可执行文件和健康接口（AOSP bootstrap overlay 已提供，待目标分支编译）。
-- [~] 添加 init service 描述和独立 SELinux domain（overlay 和 AID/产品/平台策略接线已保存，待目标构建、neverallow 和启动验证）。
-- [~] 注册稳定 Binder 服务（`agentos.sideagentd` health service 已定义，待 AOSP service manager 验证）。
-- [~] 已实现 `dumpsys agentos` Plugin 列表及 `cmd agentos health|plugins|enable|disable` 基础诊断，待系统验证；Session/Task 诊断未实现。
+- [x] 添加 SessionSelector、Jev Choice HTTP adapter 和 `submitAutoInput` 参考实现；密钥只从未跟踪的运行时配置读取，真实设备 runtime 请求仍待单独验收。
+- [~] 添加最小 daemon 可执行文件和健康接口（已随自定义 Cuttlefish 镜像编译并通过 health；正式数据目录和 runtime 请求仍待补齐）。
+- [~] 添加 init service 描述和独立 SELinux domain（已在自定义镜像启动；neverallow、数据目录标签和完整 denial 审计仍待完成）。
+- [x] 注册稳定 Binder 服务（`agentos.sideagentd` health service 已在 Cuttlefish service manager 中验证）。
+- [x] 已实现并在自定义镜像执行 `dumpsys agentos`、`cmd agentos health|plugins|enable|disable` 基础诊断；Session/Task 诊断未实现。
 
 ## M2：AgentManagerService
 
-- [~] 控制面已实现 manifest discovery、按用户持久化启用状态、绑定/握手和 health 查询；自动 `SystemServer` 接线已保存，待编译与启动验证。
+- [~] 控制面已实现 manifest discovery、按用户持久化启用状态、绑定/握手和 health 查询；自定义 Cuttlefish 已验证编译、启动和基础路径，Binder death 恢复与完整 lease 仍待补齐。
 - [ ] 处理 sideagentd 的 Binder death、重连和状态恢复。
-- [~] 已实现 user start/stop/unlock、删除用户时清理 Plugin 记录和授予状态；Session/lease 生命周期及多用户系统测试待完成。
+- [~] 已实现 user start/stop/unlock、删除用户时清理 Plugin 记录和授予状态；Probe 已覆盖部分用户清理路径，Session/lease 生命周期及完整多用户矩阵待完成。
 - [~] 现有控制 Binder 只允许 root/system UID，userdebug shell 可用诊断命令；系统签名前端的访问机制与迁移待完成。
 
 ## M3：输出管道和存储
@@ -58,9 +58,9 @@
 
 - [x] daemon 参考实现 `PluginBroker`：descriptor v3 校验、启用状态、按需绑定/握手、invoke 与 resource/reminder 管道、lease 接线；契约 §13 reference tests 1–12 通过。
 
-- [~] system_server 已实现包名、UID、签名、版本校验，待系统测试。
-- [~] manifest 发现、`BIND_AGENT_PLUGIN` 权限接线与 per-user 启用状态持久化已实现；待安装、升级、禁用、删除用户及重启测试。
-- [~] `BIND_AUTO_CREATE` 绑定、禁用时 unbind 和断连重试已实现；目前启用即保持绑定，按调用需求绑定/空闲释放及 freezer、phantom process killer 测试待完成。
+- [x] system_server 已实现并在 Probe 上验证包名、UID、签名、版本校验。
+- [~] manifest 发现、`BIND_AGENT_PLUGIN` 权限接线与 per-user 启用状态持久化已实现；安装、启用、禁用、删除用户和重绑定已验证，升级与重启矩阵待补齐。
+- [~] `BIND_AUTO_CREATE` 绑定、禁用时 unbind 和断连重试已实现并通过部分 Cuttlefish 生命周期测试；按调用需求绑定/空闲释放及 phantom process killer 测试待完成。
 - [~] stable AIDL v1 `openPluginSession` 和基础 descriptor 校验已实现；
   `agentos_system_aidl` V2 已冻结握手、capability grant、异步 tool/resource
   callback 和 cancel 的协议骨架，system_server → sideagentd handoff、
@@ -82,8 +82,8 @@ AOSP 侧改动以 [AOSP 变更全局 TODO](../platform/aosp-integration/aosp-tod
 
 - [x] 固定 `android-15.0.0_r34` 并保存 Cuttlefish-only 自动接线、真实 `AgentOsPluginProbe` 测试源码与接线 fixture tests（`62223a7`、`bfde761`、`1c163f3`）。
 - [x] 保存仓库外增量备份工具及校验记录机制（`bfde761`、`90bd0a1`、`941f125`）；运行中的构建仍需持续产出和备份证据。
-- [~] 官方 stock Cuttlefish build `16373615` image/host 本地校验已完成；启动和 ADB 尚未完成。
-- [ ] 在固定源码基线完成 Soong 分析、自定义 Cuttlefish userdebug 构建，并启动 sideagentd 与 `agentos` 服务。
-- [ ] 运行系统级 Binder、SELinux 和多用户测试。
+- [x] 官方 stock Cuttlefish build `16373615` image/host 本地校验、启动和 ADB 已完成；它只证明 host 能运行 stock 系统。
+- [x] 在固定源码基线完成 Soong 分析、自定义 Cuttlefish userdebug 构建，并启动 sideagentd 与 `agentos` 服务。
+- [~] 系统级 Binder、SELinux 和多用户测试已覆盖 health、Plugin 发现/握手及部分生命周期；完整 tool/resource、lease、恢复和多用户边界仍在补齐。
 - [ ] 将平台镜像构建放到手动 workflow，不放进默认 PR CI。
 - [ ] 按全局 TODO 的销毁前检查确认自定义镜像、校验、resolved manifest、patch、日志均有本地副本且最新代码已推送，再推进 Pixel 8 真机路线。

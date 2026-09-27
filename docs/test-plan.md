@@ -12,7 +12,7 @@ AgentOS 现在同时包含三类代码，测试结论必须分开记录：
 | --- | --- | --- |
 | `frontends/agenriod` | 可编译的 Android Compose 原型，包含 Agent Service、Session Store、MCP、Plugin 和语音入口 | 测试通过只代表 Android 原型行为通过 |
 | `system/agent/daemon`、`runtime` | 可在 Node.js 运行的 Scheduler、SQLite Store、Worker、Plugin Broker 和 Pi Worker 参考实现 | 可做离线契约、恢复和故障测试 |
-| `platform/`、真正的 `sideagentd`、`system_server`、init、SELinux、AOSP | 目前主要是设计和迁移占位，尚未形成可启动的系统镜像 | 只能制定准入条件，不能宣称系统级验收完成 |
+| `platform/`、真正的 `sideagentd`、`system_server`、init、SELinux、AOSP | 已有 `android-15.0.0_r34` Cuttlefish userdebug 镜像构建、启动、health 和 Plugin 发现/握手证据；完整 runtime/tool/resource 和 Pixel 8 仍未完成 | 可以执行 Cuttlefish 镜像与 Demo 烟测，但不能把局部证据写成完整系统级验收 |
 
 Pi ACP 适配器是工作区旁边的独立 npm 包。它有自己的 TypeScript 构建和测试命令，不能因为 AgentOS Runtime 测试通过就视为适配器已经验证。
 
@@ -32,8 +32,9 @@ Pi ACP 适配器是工作区旁边的独立 npm 包。它有自己的 TypeScript
 
 ### 2.2 当前排除或延期
 
-- 真实 `system_server` 的 `AgentManagerService`、稳定系统 AIDL、`sideagentd` init service 和 SELinux domain。
-- AOSP 编译、Cuttlefish userdebug 镜像、多用户系统权限和冻结进程的真实平台行为。
+- 完整 `system_server` capability lease、tool/resource 数据面、恢复语义以及
+  sideagentd 的正式生产数据目录策略。
+- Pixel 8 真机、干净主机复现、完整 Cuttlefish 多用户系统权限矩阵和真实 native runtime/tool/resource 行为。
 - 真实第三方模型、真实外部副作用工具和真实用户凭据的自动化测试。
 - 还没有实现的 ACP session load/resume、MCP/Plugin/Hooks 公共配置和 terminal/filesystem delegation。测试应验证它们被明确拒绝，而不是假设已经支持。
 
@@ -60,7 +61,7 @@ Pi ACP 适配器是工作区旁边的独立 npm 包。它有自己的 TypeScript
 | Android Host | Android Studio JDK、Android SDK platform 37/build tools 36、Gradle wrapper | JVM 单元、Lint、APK/Plugin 构建 | 可执行 |
 | Android Emulator | 默认 AVD `Pixel_8a`，minSdk 30，target/compile 37 | 设备和跨进程测试 | 本次检查未发现在线设备 |
 | 本地服务 fixture | `runtime/mcp-sdk-fixture.mjs`、测试内 `ServerSocket` | OpenAI-compatible/Anthropic/MCP 响应、超时和错误 | 随设备测试启动 |
-| AOSP/Cuttlefish（未来） | userdebug 镜像、专用 UID、SELinux policy、多 user | 系统级准入 | 尚未具备 |
+| AOSP/Cuttlefish | `android-15.0.0_r34` userdebug 镜像、专用 UID、SELinux policy、Plugin probe | 镜像、health、发现/握手和部分生命周期准入 | Cuttlefish 路径可执行；完整 runtime、Pixel 8 和干净主机复现待补 |
 
 测试数据必须使用临时目录和临时 SQLite/WAL 文件。API key 只允许通过 `.env.anthropic.local` 或测试内存配置进入；不得提交、打印或写入事件和截图。任何外部副作用测试都使用幂等测试键和可清理的 fake endpoint。
 
@@ -295,11 +296,13 @@ native sideagentd 已接入 MiniMax-M3 HTTPS Worker、Jev 自动 Session 选择�
 - Android App 真实模型链路：导入本地配置后 UI 显示 `MiniMax-M3`，发送唯一测试串并收到 `VERIFIED7F4`，状态回到 `Ready`；结果截图保存在 `build/codex/minimax-real-result.png`。
 
 
-未执行：
-
-- AOSP/Cuttlefish/system_server/SELinux/真实 sideagentd：native runtime 代码和
-  userdebug 验收脚本已提交；当前工作主机没有可连接的 Cuttlefish/ADB，尚未取得
-  本轮镜像的真实请求与重启证据。
+平台镜像的后续证据已记录在
+[`platform/aosp-integration/cuttlefish-host.md`](../platform/aosp-integration/cuttlefish-host.md)
+和 [`platform/aosp-integration/aosp-todo.md`](../platform/aosp-integration/aosp-todo.md)：
+自定义 Cuttlefish 镜像已构建并启动，sideagentd、Binder service、health 和
+Plugin probe 生命周期已验证；App 级 `NotesPluginCrossAppTest` 也在 stock
+Cuttlefish 上通过。native MiniMax/Jev 真实请求、完整重启恢复、tool/resource
+调用和 Pixel 8 真机仍需按各自 runbook 单独验收。
 
 这份基线只证明上述命令在当前工作树和当前主机上通过；它不替代设备测试、系统镜像测试或真实部署验收。
 

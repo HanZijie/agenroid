@@ -53,8 +53,9 @@ next public version. Version 2 transaction numbers remain unchanged:
   calls to the system data plane.
 
 This protocol and the native session router are validated with the local SDK
-AIDL Java/NDK compiler and V1→V2 API checks. A full AOSP/Soong build is still
-pending. `AgentManagerService` now hands the endpoint Binder and granted names
+AIDL Java/NDK compiler and V1→V2 API checks. The pinned Cuttlefish target has
+also passed an AOSP/Soong image build and boot/health probe; a clean-host
+rebuild and the complete data plane are still pending. `AgentManagerService` now hands the endpoint Binder and granted names
 to `sideagentd`; native `sideagentd` keeps the session, checks the granted tool
 or resource name, and forwards asynchronous calls. Plugin endpoint
 implementations still need to adopt V2, and attachment/PFD transport, lease
@@ -91,12 +92,14 @@ evidence of a successful image boot. Wiring fixture tests verify target
 selection, APK staging, rejection of wrong revisions, idempotence and backups;
 they do not compile or boot Android.
 
-As of 2026-09-22, official stock Cuttlefish build 16373615 image/host archives
-are verified locally under
-`../.local/aosp-artifacts/2026-09-22-rebuild/fallback/` (relative to the repository
-root), but boot is not complete. Those stock archives do not contain this
-overlay. There is no completed AgentOS image or AgentOS device validation in
-the current rebuild. The synchronous handshake can still exhaust its two
-workers if endpoints never return; an asynchronous or isolated handshake,
-full MCP/capability transport and freezer tests remain pending. See the
-[platform TODO](../aosp-todo.md) for completion gates.
+As of 2026-09-23, the pinned `android-15.0.0_r34` Cuttlefish target has a
+completed AgentOS image build and boot record. The custom instance reached
+`sys.boot_completed=1`; `sideagentd`, both AgentOS Binder services, health, and
+the discovery/handshake probe were checked. The official stock Cuttlefish
+archives remain a separate host baseline and do not contain this overlay. The
+synchronous handshake can still exhaust its two workers if endpoints never
+return; full MCP/capability transport, native runtime requests, and the
+remaining freezer matrix are follow-up work. For the reproducible packaging and
+Demo smoke path, see
+[`AOSP 镜像打包与 Demo 验证`](../../../docs/aosp-image-demo-quickstart.md) and the
+[platform TODO](../aosp-todo.md).

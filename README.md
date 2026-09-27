@@ -8,7 +8,7 @@ AgentOS 将 Agent 作为 Android 系统最基础的组件运行。Agent 由系�
 
 **解决什么问题?** :手机端没有原生AI Agent，手机用户Agent生态无法打通，且用户偏向使用一个Session。
 
-当前仓库处于系统化迁移阶段。`frontends/agenriod` 保留旧 Agent Host 作为测试兼容代码；正常系统镜像路径由 `AgentManagerService` 和 `sideagentd` 提供 Session、事件和 Plugin 路由。native `sideagentd` 已包含 MiniMax-M3 Worker、Jev Session 选择、secret 读取和重启恢复 fencing。
+当前仓库处于系统化迁移阶段。`frontends/agenriod` 保留旧 Agent Host 作为测试兼容代码；正常系统镜像路径由 `AgentManagerService` 和 `sideagentd` 提供 Session、事件和 Plugin 路由。native `sideagentd` 已包含 MiniMax-M3 Worker、Jev Session 选择、secret 读取和重启恢复 fencing；`android-15.0.0_r34` 的 Cuttlefish userdebug 镜像已经完成过构建、启动、health 和 Plugin 发现/握手验证。镜像打包和三个 Demo 的复现步骤见 [`docs/aosp-image-demo-quickstart.md`](docs/aosp-image-demo-quickstart.md)。
 
 ## 架构总览：系统 Agent、ACP、Plugin 和本地记忆
 
@@ -126,6 +126,8 @@ node runtime/runtime-plugin-test.mjs
 npm run test:acp --prefix runtime
 npm run test:scheduler --prefix runtime
 ```
+
+要构建 AOSP 镜像并做 Demo 烟测，使用 [`AOSP 镜像打包与 Demo 验证`](docs/aosp-image-demo-quickstart.md)。该路径覆盖 Cuttlefish；Pixel 8 真机和带真实模型凭据的 native runtime 验收仍按各自 runbook 单独执行。
 
 Android 原型的设备测试仍使用本地 `Pixel_8a` AVD。系统组件的编译和 Cuttlefish 验证会在 `platform/checkout` 可用后加入 CI 矩阵。
 
