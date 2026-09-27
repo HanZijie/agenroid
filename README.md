@@ -8,7 +8,7 @@ AgentOS 将 Agent 作为 Android 系统最基础的组件运行。Agent 由系�
 
 **解决什么问题?** :手机端没有原生AI Agent，手机用户Agent生态无法打通，且用户偏向使用一个Session。
 
-当前仓库处于系统化迁移阶段。`frontends/agenriod` 保留旧 Agent Host 作为测试兼容代码；正常系统镜像路径由 `AgentManagerService` 和 `sideagentd` 提供 Session、事件和 Plugin 路由。native `sideagentd` 已包含 MiniMax-M3 Worker、Jev Session 选择、secret 读取和重启恢复 fencing；匹配的 AOSP 镜像仍需通过 Cuttlefish 真实请求脚本后才算设备验收完成。
+当前仓库处于系统化迁移阶段。`frontends/agenriod` 保留旧 Agent Host 作为测试兼容代码；正常系统镜像路径由 `AgentManagerService` 和 `sideagentd` 提供 Session、事件和 Plugin 路由。native `sideagentd` 已包含 MiniMax-M3 Worker、Jev Session 选择、secret 读取和重启恢复 fencing。
 
 ## 架构总览：系统 Agent、ACP、Plugin 和本地记忆
 
