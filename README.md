@@ -6,6 +6,8 @@
 
 AgentOS 将 Agent 作为 Android 系统最基础的组件运行。Agent 由系统启动和监管，拥有自己的进程、持久化状态、权限边界和输出事件流；Android App 只是前端，可以创建 Session、提交输入和订阅输出。对于上层而言，所有的 APP 在 Agent 眼里都是Plugin（APP is a Plugin）；Agent 是整个系统包括 APP 可以随时唤起的基础能力（基于ACP）。Jev 模型的低延时特性作为 Session 管理引擎，让用户像使用 Siri 一样使用 Agent，同时保留 Session 管理的基础功能像用户透出。
 
+**解决什么问题?** :手机端没有原生AI Agent，手机用户Agent生态无法打通，且用户偏向使用一个Session。
+
 当前仓库处于系统化迁移阶段。`frontends/agenriod` 保留旧 Agent Host 作为测试兼容代码；正常系统镜像路径由 `AgentManagerService` 和 `sideagentd` 提供 Session、事件和 Plugin 路由。native `sideagentd` 已包含 MiniMax-M3 Worker、Jev Session 选择、secret 读取和重启恢复 fencing；匹配的 AOSP 镜像仍需通过 Cuttlefish 真实请求脚本后才算设备验收完成。
 
 ## 架构总览：系统 Agent、ACP、Plugin 和本地记忆
